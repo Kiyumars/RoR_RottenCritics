@@ -1,4 +1,9 @@
 Rails.application.routes.draw do
+  get 'home/index'
+
+  root :to => 'home#index'
+  match "/game_round" => "home#game_round", :via => :get
+
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 
