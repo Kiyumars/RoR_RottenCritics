@@ -138,15 +138,21 @@ def prepare_movie_hash(movie_id)
 	if ! enough_movie_reviews then
 		return nil
 	end
-	critics_score, audience_score = enough_movie_reviews
-	movie_hash['critics_score'] = critics_score
-	movie_hash['audience_score'] = audience_score
+	add_reviews_info_to_movie_hash(movie_hash, enough_movie_reviews)
 	get_casts_info(movie_hash, movie_id)
 	get_videos(movie_hash, movie_id)
 	
 	puts movie_hash
 end
 
+
+def add_reviews_info_to_movie_hash(movie_hash, review_info)
+	critics_score, audience_score, total_reviews, review_quotes = review_info
+	movie_hash['critics_score'] = critics_score
+	movie_hash['audience_score'] = audience_score
+	movie_hash['total_reviews'] = total_reviews
+	movie_hash['review_quotes'] = review_quotes
+end
 
 def search_tmdb_for_actor_and_filmography(actor_parameter)
 	search_actor = request_tmdb_json("search/person", actor_parameter)
@@ -193,16 +199,26 @@ def check_if_six_reviews_exist(rt_movie_id)
 	request_url += "&review_type=all"
 
 	resp = Net::HTTP.get_response(URI(request_url))
-	total_reviews = JSON(resp.body)['total']
+	total_reviews = JSON(resp.body)
 
-	if total_reviews < 6 then
+	if total_reviews["total"] < 6 then
 		return false
 	else
-		return true
+		return total_reviews['total'], get_review_quotes(total_reviews['reviews'])
 	end
 
 end
 
+
+def get_review_quotes(reviews_json)
+	quotes_list = Array.new
+	reviews_json.each do |review|
+		if review["quote"] != ""
+			quotes_list.push(review["critic"] + ": " + review["quote"])
+		end
+	end
+	return quotes_list
+end
 
 def add_rt_info(imdb_movie_id, movie_hash)
 	reviews_on_rt = check_if_rt_scores_exist_and_return(imdb_movie_id)
@@ -211,14 +227,15 @@ def add_rt_info(imdb_movie_id, movie_hash)
 	end
 	critics_score, audience_score, rt_movie_id = reviews_on_rt
 
-	if ! check_if_six_reviews_exist(rt_movie_id) then
+	enough_reviews = check_if_six_reviews_exist(rt_movie_id)
+	if ! enough_reviews then
 		puts "Less than six reviews"
 		puts imdb_movie_id
-
 		return false
 	end
+	total_reviews, review_quotes = enough_reviews
 	
-	return critics_score, audience_score
+	return critics_score, audience_score, total_reviews, review_quotes
 end
 
 
