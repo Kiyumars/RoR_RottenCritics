@@ -1,16 +1,24 @@
-module HomeHelper
-
-end
-
 require 'json'
 require 'uri'
 
 require 'net/http'
+require "mongo"
 
 TMDB_key = ENV['tmdb_key']
 RT_key = ENV['rt_key']
 
 module HomeHelper	
+end
+
+def check_if_actor_in_db(actor_name)
+	db = Mongo::Connection.new.db("mydb")
+	coll = db.collection('actors_tmdb')
+	find_actor = coll.find_one('actor_name' => actor_name)
+	if find_actor.nil? then
+		return false
+	else
+		return find_actor
+	end	
 end
 
 def prepare_actor_url_parameter_for_tmdb(actor_name_list)
@@ -22,9 +30,10 @@ def search_tmdb_for_actor_and_return_filmography(actor_parameter)
 	search_actor = request_tmdb_json("search/person", actor_parameter)
 	actor_id = search_actor['results'][0]['id'].to_s
 	actor_biography_request_url = "person/" + actor_id 
-	request_tmdb_json(actor_biography_request_url)['biography']
+	biography = request_tmdb_json(actor_biography_request_url)['biography']
 	actor_filmography_request_url = "person/" + actor_id + "/movie_credits"
-	return request_tmdb_json(actor_filmography_request_url)
+	actor_filmography = request_tmdb_json(actor_filmography_request_url)
+	return biography, actor_filmography
 end
 
 
@@ -134,6 +143,7 @@ end
 def prepare_movie_hash(movie_id)
 	movie_hash = Hash.new
 	get_basic_movie_info(movie_hash, movie_id)
+	#search rt info using imdb_id without the prefix "tt"
 	enough_movie_reviews = add_rt_info(movie_hash['imdb_id'][2..-1], movie_hash)
 	if ! enough_movie_reviews then
 		return nil
@@ -142,7 +152,7 @@ def prepare_movie_hash(movie_id)
 	get_casts_info(movie_hash, movie_id)
 	get_videos(movie_hash, movie_id)
 	
-	puts movie_hash
+	return movie_hash
 end
 
 
@@ -153,6 +163,7 @@ def add_reviews_info_to_movie_hash(movie_hash, review_info)
 	movie_hash['total_reviews'] = total_reviews
 	movie_hash['review_quotes'] = review_quotes
 end
+
 
 def search_tmdb_for_actor_and_filmography(actor_parameter)
 	search_actor = request_tmdb_json("search/person", actor_parameter)
@@ -213,12 +224,13 @@ end
 def get_review_quotes(reviews_json)
 	quotes_list = Array.new
 	reviews_json.each do |review|
-		if review["quote"] != ""
+		if ! review["quote"].empty?
 			quotes_list.push(review["critic"] + ": " + review["quote"])
 		end
 	end
 	return quotes_list
 end
+
 
 def add_rt_info(imdb_movie_id, movie_hash)
 	reviews_on_rt = check_if_rt_scores_exist_and_return(imdb_movie_id)
@@ -244,18 +256,50 @@ def prepare_actor_url_parameter_for_tmdb(actor_name_list)
 end
 
 
-def find_and_print_tmdb_movie_info(actor_filmography)
+def find_and_print_tmdb_movie_info(actor_filmography, actor_db_id)
 	movie_ids_list = Array.new
 
 	actor_filmography['cast'].each do |movie_dict|
 		movie_ids_list.push(movie_dict['id'])
 	end
 
+	prepare_movie_hash_and_enter_into_db(movie_ids_list, actor_db_id)
+end
+
+
+def prepare_movie_hash_and_enter_into_db(movie_ids_list, actor_db_id)
 	movie_ids_list.each do |movie_id|
 		begin
-			puts prepare_movie_hash(movie_id)
+			movie_hash = prepare_movie_hash(movie_id)
+			enter_movie_into_actor_db(actor_db_id, movie_hash)
 		rescue SocketError => e
 			puts e.message
 		end
 	end
+end
+
+
+def enter_actor_into_db(actor_name, biography)
+	db = Mongo::Connection.new.db("mydb")
+	coll = db.collection('actors_tmdb')
+	actor_insert_id = coll.insert("actor_name" => actor_name, "biography" => biography, 
+									"movies" => [])
+end
+
+
+def enter_movie_into_actor_db(db_id, movie_hash)
+	db = Mongo::Connection.new.db("mydb")
+	coll = db.collection('actors_tmdb')
+	puts "We are in enter movie into actor db"
+	puts movie_hash.class
+	coll.update({"_id" => db_id}, {"$push" => {"movies" => movie_hash}} )
+end
+
+
+def pick_one_movie(db_entry_db)
+	db = Mongo::Connection.new.db("mydb")
+	coll = db.collection('actors_tmdb')
+
+	actor_entry = coll.find_one("_id" => BSON::ObjectId(db_entry_db.to_s))
+	movie_choice = actor_entry["movies"].compact.sample
 end
