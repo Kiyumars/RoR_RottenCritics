@@ -299,8 +299,9 @@ def prepare_movie_hash_and_enter_into_db(movie_ids_list, actor_db_id)
 		begin
 			movie_hash = prepare_movie_hash(movie_id)
 			enter_movie_into_actor_db(actor_db_id, movie_hash)
-		rescue SocketError => e
+		rescue SocketError, TypeError => e
 			puts e.message
+			next
 		end
 	end
 end
@@ -323,14 +324,14 @@ def enter_movie_into_actor_db(db_id, movie_hash)
 end
 
 
-def pick_one_movie(db_entry_db)
+def pick_one_movie(db_entry_id)
 	db = Mongo::Connection.new.db("mydb")
 	coll = db.collection('game_sessions')
 
-	actor_entry = coll.find_one("_id" => BSON::ObjectId(db_entry_db.to_s))
+	actor_entry = coll.find_one("_id" => BSON::ObjectId(db_entry_id.to_s))
 	movie_choice = actor_entry["movies"].compact.sample
-	coll.update({"_id" => BSON::ObjectId(db_entry_db.to_s)}, 
-				"critics_score" => movie_choice['critics_score'])
+	coll.update({"_id" => BSON::ObjectId(db_entry_id.to_s)}, 
+				"$set" => {"critics_score" => movie_choice['critics_score']} )
 
 	return movie_choice
 end

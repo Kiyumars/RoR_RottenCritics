@@ -2,6 +2,8 @@
 	<h3>Players' guesses</h3>
 	<% @players_guesses.each do |player| %>
 		<%= player[0] %> guessed <%= player[1] %> <br>
+		This was off by <%= @penalty_points[player[0]].to_s %> points. <br>
+		<%= player[0] %>'s current score is <%= @updated_scores[player[0]] %> <br> 
 		<br>
 	<% end %>
 	

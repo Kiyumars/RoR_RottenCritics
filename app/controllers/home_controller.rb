@@ -24,11 +24,30 @@ class HomeController < ApplicationController
 
 	def score_update
 		@players_guesses = params["players_guesses"]
+		puts @players_guesses
 		@game_id = params["game_id"]
+		@penalty_points = Hash.new
+		@updated_scores = Hash.new
 		db = Mongo::Connection.new.db("mydb")
 		game_session_db = db.collection('game_sessions')
-		@game_session = game_session_db.find_one("_id" => BSON::ObjectId(@game_id.to_s))
-		puts @game_session 
+
+		@game_session = game_session_db.find_one({"_id" => BSON::ObjectId(@game_id.to_s)})
+		puts "This is the game session"
+		puts @game_session
+		correct_critics_score = @game_session['critics_score']
+
+		@players_guesses.each do | guess |
+			puts "This is the guess iterator"
+			puts guess[0]
+			current_score = @game_session['players_scores'][guess[0]]
+			penalty_points = (@players_guesses[guess[0]].to_i - correct_critics_score).abs
+			@penalty_points[guess[0]] = penalty_points
+			@updated_scores[guess[0]] = current_score + penalty_points
+		end
+		
+		puts game_session_db.update({"_id" => BSON::ObjectId(@game_id.to_s)}, 
+									"$set" => {"players_scores" => @updated_scores } )
+
 	end
 end
 
