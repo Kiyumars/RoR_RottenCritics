@@ -21,4 +21,16 @@ class HomeController < ApplicationController
 			@movie = pick_one_movie(@game_id)
 		end
 	end
+
+	def game_round
+		@players_guesses = params["players_guesses"]
+		puts @players_guesses.class
+		@game_id = params["game_id"]
+	end
 end
+
+private
+	
+# def whitelisted_get_params
+# 	params.require(:post).permit(:players_guesses, :game_id)
+# end	

@@ -1,20 +1,9 @@
 <div id="game_rules">
-	
-	<h2><%= @movie["title"]%></h2>
-	<strong>Director</strong> <%= @movie['directors'] %> <br>
-	<strong>Cast</strong> <%= @movie['cast'] %> <br>
-	
-	<%if ! @movie['screenwriters'].blank? %>
-		<strong>Screenwriters</strong> <%= @movie['screenwriters'] %> <br>
-	<%end%>
-	
-	<strong>Plot</strong> <%= @movie['overview']%> <br>
-	
-	<%if ! @movie['trailer'].blank? %>
-		<a href="<%= @movie['trailer']%>" target="_blank">Trailer</a> <br>
+	<h3>Players' guesses</h3>
+	<% @players_guesses.each do |player| %>
+		<%= player[0] %> guessed <%= player[1] %> <br>
+		<br>
 	<% end %>
 	
-	<%if ! @movie['poster_path'].blank? %>
-		<a href="<%= @movie['poster_path'] %>" target="_blank">Poster</a> <br>
-	<% end %>
-</div> 
+	<input type="hidden" id="game_id" name="game_id" value="<%= @game_id %>"> 
+</div>
