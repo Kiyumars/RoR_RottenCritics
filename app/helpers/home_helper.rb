@@ -10,6 +10,32 @@ RT_key = ENV['rt_key']
 module HomeHelper	
 end
 
+
+def start_game_session(players, actor_id)
+	db = Mongo::Connection.new.db("mydb")
+	coll = db.collection('game_sessions')
+	movies = get_movies_from_actor_db(actor_id)
+	players_hash = Hash.new
+
+	players.each do |player|
+		players_hash[player] = 0
+	end
+
+	game_id = coll.insert("players_scores" => players_hash,
+							 "players_guesses" => players_hash, 
+							 "movies" => movies)
+end
+
+
+def get_movies_from_actor_db(actor_id)
+	db = Mongo::Connection.new.db("mydb")
+	actor_db = db.collection('actors_tmdb')
+
+	actor_query = actor_db.find_one("_id" => BSON::ObjectId(actor_id.to_s))
+	movies = actor_query['movies']
+end
+
+
 def check_if_actor_in_db(actor_name)
 	db = Mongo::Connection.new.db("mydb")
 	coll = db.collection('actors_tmdb')
@@ -298,7 +324,7 @@ end
 
 def pick_one_movie(db_entry_db)
 	db = Mongo::Connection.new.db("mydb")
-	coll = db.collection('actors_tmdb')
+	coll = db.collection('game_sessions')
 
 	actor_entry = coll.find_one("_id" => BSON::ObjectId(db_entry_db.to_s))
 	movie_choice = actor_entry["movies"].compact.sample

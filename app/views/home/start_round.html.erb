@@ -1,0 +1,28 @@
+<div id="game_rules">
+	
+	<h2><%= @movie["title"]%></h2>
+	<strong>Director</strong> <%= @movie['directors'] %> <br>
+	<strong>Cast</strong> <%= @movie['cast'] %> <br>
+	
+	<%if ! @movie['screenwriters'].blank? %>
+		<strong>Screenwriters</strong> <%= @movie['screenwriters'] %> <br>
+	<%end%>
+	
+	<strong>Plot</strong> <%= @movie['overview']%> <br>
+	
+	<%if ! @movie['trailer'].blank? %>
+		<a href="<%= @movie['trailer']%>" target="_blank">Trailer</a> <br>
+	<% end %>
+	
+	<%if ! @movie['poster_path'].blank? %>
+		<a href="<%= @movie['poster_path'] %>" target="_blank">Poster</a> <br>
+	<% end %>
+	
+	<%= form_tag('/game_round', :method=>"get") do%>
+		<% @players.each do |player| %>
+			<%= player %>'s guess: <input type="text" id="<% player %>" name="<% player %>"> <br>
+		<% end %>
+		<input type="hidden" name="game_id" id="game_id" value="<%= @game_id %>">
+	<% end %>
+
+</div> 

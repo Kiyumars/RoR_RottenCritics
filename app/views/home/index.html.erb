@@ -1,9 +1,13 @@
 <div id="game_rules">
-	<h1>Dummy output</h1>
+	<h1>Rotten Critics</h1>
 	<h3>Let's try this out </h3>
-	<%= form_tag('/game_round', :method=>"get") do%>
-		Enter name of actor or actress<%= text_field_tag("actor_name", nil, placeholder: "What are we doing here?") %>
-		<%= submit_tag("Look up actor", :class => "btn")%>
+	<%= form_tag('/start_round', :method=>"get") do%>
+		Enter name of actor or actress<%= text_field_tag("actor_name", nil, placeholder: "What are we doing here?") %> <br>
+		Enter the names of all of the players. <br>
+		Seperate names with a "," <%= text_field_tag("players", nil, placeholder: "Tom, Dick, and Harry.") %> <br>
+
+
+		<%= submit_tag("Let's play.", :class => "btn")%>
 
 	<%end%>
 </div>
