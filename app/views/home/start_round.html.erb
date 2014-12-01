@@ -18,11 +18,13 @@
 		<a href="<%= @movie['poster_path'] %>" target="_blank">Poster</a> <br>
 	<% end %>
 	
-	<%= form_tag('/game_round', :method=>"post") do%>
+	<%= form_tag('/score_update', :method=>"post") do%>
 		<% @players.each do |player| %>
 			<%= player %>'s guess: <input type="text" id="players_guesses[<%= player %>]" name="players_guesses[<%= player %>]"> <br>
 		<% end %>
+		
 		<input type="hidden" name="game_id" id="game_id" value="<%= @game_id %>">
+		
 		<%= submit_tag("Enter all guesses.", :class => "btn")%>
 	<% end %>
 

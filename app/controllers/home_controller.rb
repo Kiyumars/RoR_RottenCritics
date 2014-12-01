@@ -22,10 +22,13 @@ class HomeController < ApplicationController
 		end
 	end
 
-	def game_round
+	def score_update
 		@players_guesses = params["players_guesses"]
-		puts @players_guesses.class
 		@game_id = params["game_id"]
+		db = Mongo::Connection.new.db("mydb")
+		game_session_db = db.collection('game_sessions')
+		@game_session = game_session_db.find_one("_id" => BSON::ObjectId(@game_id.to_s))
+		puts @game_session 
 	end
 end
 

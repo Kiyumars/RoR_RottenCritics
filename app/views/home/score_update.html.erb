@@ -1,0 +1,10 @@
+<div id="game_rules">
+	<h3>Players' guesses</h3>
+	<% @players_guesses.each do |player| %>
+		<%= player[0] %> guessed <%= player[1] %> <br>
+		<br>
+	<% end %>
+	
+	The critics score of the movie is <%= @game_session['critics_score'] %>
+	<input type="hidden" id="game_id" name="game_id" value="<%= @game_id %>"> 
+</div>

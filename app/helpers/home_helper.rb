@@ -23,7 +23,8 @@ def start_game_session(players, actor_id)
 
 	game_id = coll.insert("players_scores" => players_hash,
 							 "players_guesses" => players_hash, 
-							 "movies" => movies)
+							 "movies" => movies,
+							 "critics_score" => nil)
 end
 
 
@@ -328,4 +329,8 @@ def pick_one_movie(db_entry_db)
 
 	actor_entry = coll.find_one("_id" => BSON::ObjectId(db_entry_db.to_s))
 	movie_choice = actor_entry["movies"].compact.sample
+	coll.update({"_id" => BSON::ObjectId(db_entry_db.to_s)}, 
+				"critics_score" => movie_choice['critics_score'])
+
+	return movie_choice
 end
