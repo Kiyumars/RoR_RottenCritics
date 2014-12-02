@@ -32,8 +32,6 @@ class HomeController < ApplicationController
 		game_session_db = db.collection('game_sessions')
 
 		@game_session = game_session_db.find_one({"_id" => BSON::ObjectId(@game_id.to_s)})
-		puts "This is the game session"
-		puts @game_session
 		correct_critics_score = @game_session['critics_score']
 
 		@players_guesses.each do | guess |
@@ -48,6 +46,21 @@ class HomeController < ApplicationController
 		puts game_session_db.update({"_id" => BSON::ObjectId(@game_id.to_s)}, 
 									"$set" => {"players_scores" => @updated_scores } )
 
+	end
+
+	def next_round
+		@game_id = params["game_id"]
+		db = Mongo::Connection.new.db("mydb")
+		game_session_db = db.collection('game_sessions')
+		@game_session = game_session_db.find_one({"_id" => BSON::ObjectId(@game_id.to_s)})
+		puts "What's up with the game_session?"
+		puts @game_session['players_scores']
+		@players = Array.new
+
+		@game_session["players_scores"].keys.each do |player|
+			@players.push(player)
+		end
+		@movie = pick_one_movie(@game_id)
 	end
 end
 

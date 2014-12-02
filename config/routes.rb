@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   root :to => 'home#index'
   match "/start_round" => "home#start_round", :via => :get
   match "/score_update" => "home#score_update", :via => :post
+  match "/next_round" => "home#next_round", :via => :get
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
